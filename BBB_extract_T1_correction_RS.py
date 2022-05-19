@@ -36,7 +36,7 @@ import nibabel as nib
 import matplotlib.pyplot as plt
 plt.style.use( 'ggplot' )
 plt.ion()
-from scipy.optimize import minimize, newton, basinhopping
+from scipy.optimize import minimize, newton, basinhopping, least_squares
 
 from datetime import datetime
 startTime = datetime.now()
@@ -205,10 +205,17 @@ def minT1( alpha_pRad, alpha_PRad, TR, TR_IR, TI_IR, TD_IR, N, PECentre, sig_SPG
                            #args=(alpha_pRad, alpha_PRad, TR, TR_IR, TI_IR, TD_IR, N, PECentre, sig_SPGR, sig_IR),
                            #bounds=minT1_bounds, options={'maxiter': 100})
 
-    minT1_param = minimize(t1ROI_fun, minT1_param_init.x, method = 'L-BFGS-B', \
-    args = ( alpha_pRad, alpha_PRad, TR, TR_IR, TI_IR, TD_IR, N, PECentre, sig_SPGR, sig_IR), bounds = minT1_bounds, options = {'maxiter':100} )
+    # minT1_param = minimize(t1ROI_fun, minT1_param_init.x, method = 'L-BFGS-B', \
+    # args = ( alpha_pRad, alpha_PRad, TR, TR_IR, TI_IR, TD_IR, N, PECentre, sig_SPGR, sig_IR), bounds = minT1_bounds, options = {'maxiter':100} )
+
+    minT1_param = least_squares(t1ROI_fun, np.array([T1_calc, rho_calc, 1.0]), jac='2-point',
+                  bounds=([0.0, 0.0, 0.0], [np.Inf, np.Inf, np.Inf]), method='trf', ftol=1e-08, xtol=1e-08, gtol=1e-08,
+                  x_scale=1.0, loss='linear', f_scale=1.0, diff_step=None, tr_solver=None, tr_options={},
+                  jac_sparsity=None, max_nfev=None, verbose=0,
+                  args=(alpha_pRad, alpha_PRad, TR, TR_IR, TI_IR, TD_IR, N, PECentre, sig_SPGR, sig_IR), kwargs={})
 
     return minT1_param
+
 
 def GdConcFun( Ci, sigEn, r1, r2, T1, TR, TE, alpha_b ):
     '''This function solved via SciPy's 'newton' function (Newton-Raphson or
