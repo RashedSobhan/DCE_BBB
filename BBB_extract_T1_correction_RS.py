@@ -121,20 +121,22 @@ def t1ROI_fun(x, alpha_pRad, alpha_PRad, TR, TR_IR, TI_IR, TD_IR, N, PECentre, s
     #E1 = np.exp( - TR / T1_calc ) # Can now calculate this factor from T1_Calc
     # s = S0. * (((1 - exp(-TR_s. / T1_s)). * sin(b_rad)). / (1 - exp(-TR_s. / T1_s). * cos(b_rad)))
     #SPGR_res = rho_s * (((1. - np.exp(-TR / T1_s)) * np.sina) / (1. - np.exp(-TR / T1_s) * np.cosa))
-    SPGR_res = abs(rho_s * (((1. - np.exp(-TR / T1_s)) * np.sin(np.asarray(alpha_pRad) * kappa)) / (1. - np.exp(-TR / T1_s) * np.cos(np.asarray(alpha_pRad) * kappa))))
+    SPGR_res = abs(rho_s * (((1. - np.exp(-TR / T1_s)) * np.sin(np.asarray(alpha_pRad) * kappa)) / (
+            1. - np.exp(-TR / T1_s) * np.cos(np.asarray(alpha_pRad) * kappa))))
+
 
     # Calculate IR spoiled GRE residual
 
     # TI = TI_IR .* TI_SCALE;      # Re-scale TI.
     # full_TR_IR = TI + READOUT_PULSES * TR_IR
 
-    tau = TR * N  # % duration of the acquisition block
+    tau = TR_IR * N  # % duration of the acquisition block
 
     #T1Star = ((1 / T1_s) - (1. / TR_s). * log(cos(b_rad))). ^ (-1);
-    T1_s = ((1. / T1_calc) + (1. / TR) * (np.log(np.cos(alpha_PRad * kappa)))) ** (-1)
+    T1_s = 1./ ((1. / T1_calc) + (1. / TR_IR * np.log(np.cos(alpha_PRad * kappa))))
     #M0Star = S0 * ((1 - exp(-TR_s / T1_s)). / (1 - exp(-TR_s. / T1Star)));
     #S0=rho_s; M0Star=rho_calc; T1star=T1_calc;
-    rho_s = rho_calc / ((1. - np.exp(-TR / T1_s)) / (1. - np.exp(-TR / T1_calc)))
+    rho_s = rho_calc / ((1. - np.exp(-TR_IR / T1_s)) / (1. - np.exp(-TR_IR / T1_calc)))
 
     #A1 = M0Star. * (1 - exp(-tau. / T1Star));
     A1 = rho_calc * (1. - np.exp(-tau / T1_calc))
@@ -163,6 +165,8 @@ def t1ROI_fun(x, alpha_pRad, alpha_PRad, TR, TR_IR, TI_IR, TD_IR, N, PECentre, s
 
     IR_res = (rho_calc + (M1 - rho_calc) * np.exp(-(PECentre * tau) / T1_calc)) * np.sin(alpha_PRad*kappa)
     IR_res = abs(IR_res)
+
+
 
     res = np.linalg.norm( SPGR_res - sig_SPGR ) \
     + np.linalg.norm( IR_res - sig_IR )
@@ -208,12 +212,15 @@ def minT1( alpha_pRad, alpha_PRad, TR, TR_IR, TI_IR, TD_IR, N, PECentre, sig_SPG
     # minT1_param = minimize(t1ROI_fun, minT1_param_init.x, method = 'L-BFGS-B', \
     # args = ( alpha_pRad, alpha_PRad, TR, TR_IR, TI_IR, TD_IR, N, PECentre, sig_SPGR, sig_IR), bounds = minT1_bounds, options = {'maxiter':100} )
 
-    minT1_param = least_squares(t1ROI_fun, np.array([T1_calc, rho_calc, 1.0]), jac='2-point',
-                  bounds=([0.0, 0.0, 0.0], [np.Inf, np.Inf, np.Inf]), method='trf', ftol=1e-08, xtol=1e-08, gtol=1e-08,
-                  x_scale=1.0, loss='linear', f_scale=1.0, diff_step=None, tr_solver=None, tr_options={},
-                  jac_sparsity=None, max_nfev=None, verbose=0,
-                  args=(alpha_pRad, alpha_PRad, TR, TR_IR, TI_IR, TD_IR, N, PECentre, sig_SPGR, sig_IR), kwargs={})
 
+
+    minT1_param = least_squares(t1ROI_fun, [T1_calc, rho_calc , 1.0] , jac='2-point',
+                                bounds=([0.0, 0.0, 0.0], [np.Inf, np.Inf, np.Inf]), method='trf', ftol=1e-08,
+                                xtol=1e-08, gtol=1e-08,
+                                x_scale=1.0, loss='linear', f_scale=1.0, diff_step=None, tr_solver=None, tr_options={},
+                                jac_sparsity=None, max_nfev=None, verbose=0,
+                                args=(alpha_pRad, alpha_PRad, TR, TR_IR, TI_IR, TD_IR, N, PECentre, sig_SPGR, sig_IR),
+                                kwargs={})
     return minT1_param
 
 
@@ -244,6 +251,7 @@ def patlakFun( param, tVec, conc_plasma, conc_time, excPts ):
     patlak = v_p * conc_plasma[ excPts : -1 ] + \
     K_trans * np.trapz( conc_plasma, x = tVec )  # Use integral of full VIF
 
+
     res = np.linalg.norm( patlak - conc_time[ excPts : -1 ] )
 
     return res
@@ -255,8 +263,8 @@ def patlakFit( param, tVec, conc_plasma, conc_time ):
     v_p = param[ 0 ]      # fractional interstial volume
     K_trans = param[ 1 ]  # volume transfer constant
 
-    return v_p * conc_plasma + K_trans * np.trapz( conc_plasma, x = tVec )
-
+    # return v_p * conc_plasma + K_trans * np.trapz( conc_plasma, x = tVec )
+    return v_p * conc_plasma + K_trans * np.trapz(conc_plasma, x=tVec)
 
 ## MAIN CODE LOOP
 # Load spoiled GRE images (in nifti format) from the working directory
@@ -481,15 +489,15 @@ corrAlpha_CSF = ( KAPPA_CSF / 100 ) * alpha_pRad[ -1 ]
 for i in range( 1 , len( DCEimg_data[ 1, 1, 1, : ] ) ):
 
     conc = newton( GdConcFun, C, \
-    args = ( sigEn_WM[ i ], r1, r2, T1_WM, TR_CE, TE_CE, corrAlpha_WM ), maxiter=2000 )
+    args = ( sigEn_WM[ i ], r1, r2, T1_WM, TR_CE, TE_CE, corrAlpha_WM ), maxiter=5000 )
     WM_GdConc[ i ] = conc
 
     conc = newton( GdConcFun, C, \
-    args = ( sigEn_GM[ i ], r1, r2, T1_GM, TR_CE, TE_CE, corrAlpha_GM ) , maxiter=2000)
+    args = ( sigEn_GM[ i ], r1, r2, T1_GM, TR_CE, TE_CE, corrAlpha_GM ) , maxiter=5000)
     GM_GdConc[ i ] = conc
 
     conc = newton( GdConcFun, C, \
-    args = ( sigEn_CSF[ i ], r1, r2, T1_CSF, TR_CE, TE_CE, corrAlpha_CSF ), maxiter=2000)
+    args = ( sigEn_CSF[ i ], r1, r2, T1_CSF, TR_CE, TE_CE, corrAlpha_CSF ), maxiter=5000)
     CSF_GdConc[ i ] = conc
 
     # Assume optimal flip angle in SS
