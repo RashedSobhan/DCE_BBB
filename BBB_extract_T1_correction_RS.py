@@ -471,7 +471,8 @@ GM_GdConc = np.zeros( len( DCEimg_data[ 1, 1, 1, : ] ) )
 CSF_GdConc = np.zeros( len( DCEimg_data[ 1, 1, 1, : ] ) )
 SS_GdConc = np.zeros( len( DCEimg_data[ 1, 1, 1, : ] ) )
 
-C = 0.8    # Initial guess for contrast conc. (mM). (Should be ~ 0.02 - 2)
+C = 0.02   # Initial guess for contrast conc. (mM). (Should be ~ 0.02 - 2)
+#this was 0.8 in DC code, armitage suggests 0.02 for GM and 0.009 for WM
 
 # TR and TE for DCE-MRI sequence (different from DESPOT1)
 #TR_CE = 0.006449; Value in DC code
@@ -514,7 +515,7 @@ find an approximate global minimum, then L-BFGS-B for precise estimation.'''
 HCt = 0.423                 # Mean haematocrit measurement from all subjects
 conc_plasma = SS_GdConc / ( 1 - HCt ) # Calculate [Gd_plasma] from [Gd_blood]
 '''DCam, 131017. Use per-participant haematocrit to calculate plasma [Gd]'''
-vp_est = 0.02     # v_p starting value for minimisation. (Heye gives ~ 0.008)
+vp_est = 0.2     # v_p starting value for minimisation. (Heye gives ~ 0.008)
 Kt_est = 0.0004  # K_trans starting value for minimisation.
 bounds = ( ( 0, 1 ), ( 0, None ) ) # Restrict to positive values
 
