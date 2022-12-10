@@ -1,8 +1,8 @@
 # BBB DCE-MRI T1 TIME COURSE CALCULATION - BBB_t1TimeCourse_noBSL_140917.py
 #===============================================================================
-# AUTHOR: Donnie Cameron
+# AUTHOR: Donnie Cameron & Rashed Sobhan
 # START DATE: 07/09/2017
-# LAST UPDATED: 13/10/2017
+# LAST UPDATED: 26/08/2022
 # REQUIRED PACKAGES: numpy, scipy, matplotlib, nibabel
 #===============================================================================
 '''DESCRIPTION: This script takes DCE-MRI data, DESPOT-HIFI T1w data, and brain
