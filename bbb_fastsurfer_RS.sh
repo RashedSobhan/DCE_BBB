@@ -6,7 +6,7 @@ bbb_pipe(){
 # this code Performs segmentation of T1-weighted images in FreeSurfer. 
 #
 # INPUT: 
-# AUTHORS: Donnie Cameron
+# AUTHORS: Donnie Cameron & Rashed Sobhan
 # CREATED: 2022/05/05
 # LAST UPDATED:  
 #
