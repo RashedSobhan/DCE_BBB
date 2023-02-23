@@ -15,6 +15,7 @@ Created on Mon Oct  3 22:46:51 2022
 """
 ####this code has the modification suggested by MIchael in the email dated 8/12/2022 with jupyter notebok fit_dce.ipynb
 #####anything that has ################ before the modified code is RS code 
+####this code was developed on 23/02/2023 to include exact VIF voxels (manually selected) with first 4 points excluded from fitting 
 
 # this file does t1 fitting according to SEPAL 
 # signal to concentration conversion was done by SEPAL too 
@@ -241,7 +242,7 @@ ax2.set_xlim( [ 0, np.max( tVec ) + 20 ] )
 ax2.grid(None)
 
 # plt.legend( handles = [ plt1, plt2, plt3, plt4,plt5, plt6, plt7 ], loc = 'lower center', mode = "expand", ncol = 4,  frameon = False ) 
-plt.legend( handles = [ plt1, plt2, plt3, plt4,plt5, plt6, plt7 ], bbox_to_anchor=(1, -0.15), loc="lower right",bbox_transform=fig.transFigure, ncol=4) 
+plt.legend( handles = [ plt1, plt2, plt3, plt4, plt5, plt7 ], bbox_to_anchor=(1, -0.15), loc="lower right",bbox_transform=fig.transFigure, ncol=4) 
 
 #plt.show( )
 #????more regions to add here 
@@ -413,7 +414,7 @@ for tissue_type in range(6):
     ax[1].set_xlabel('time (s)');
     [a.legend() for a in ax.flatten()];
     
-    plt.savefig(results_dir+f"/{sub_ID}_RS_conc_VIF_"+ ROI[tissue_type] + '_nodrift_on_T1_std_enh_timed100_Michael_exact_t1vif_kappavif.png', format = 'png', bbox_inches = 'tight', dpi = 500)
+    #plt.savefig(results_dir+f"/{sub_ID}_RS_conc_VIF_"+ ROI[tissue_type] + '_nodrift_on_T1_std_enh_timed100_Michael_exact_t1vif_kappavif.png', format = 'png', bbox_inches = 'tight', dpi = 500)
     plt.savefig(dir+f"/{sub_ID}_RS_conc_VIF_"+ ROI[tissue_type] + '_nodrift_on_T1_std_enh_timed100_Michael_exact_t1vif_kappavif.png', format = 'png', bbox_inches = 'tight', dpi = 500)
 
 
@@ -433,7 +434,7 @@ for tissue_type in range(6):
     # weights = np.concatenate([np.zeros(7), np.ones(25)]) # exclude first few points from fit
     #############weights = np.concatenate([np.zeros(5), np.ones(15)]) # exclude first few points from fit
     
-    weights = np.concatenate([np.zeros(2), np.ones(18)])
+    weights = np.concatenate([np.zeros(4), np.ones(16)])
     pkp_0 = [{'vp': 0.2, 'ps': 1e-4}] # starting parameters (multiple starting points can be specified if required)
     #############conc_to_pkp = dce_fit.ConcToPKP(pk_model, pkp_0, weights)
 
@@ -444,7 +445,7 @@ for tissue_type in range(6):
     plt.plot(t, C_t, '.', label= ROI[tissue_type] +' conc. (mM)')
     plt.plot(t, C_t_fit, '-', label='model fit (mM)')
     plt.legend();
-    plt.savefig(results_dir+'/'+f'{sub_ID}'+'_RS_model_fit_'+ROI[tissue_type]+'_nodrift_on_T1_std_Michael_exact_t1vif_kappavif.png', format = 'png', bbox_inches = 'tight', dpi = 500)
+    #plt.savefig(results_dir+'/'+f'{sub_ID}'+'_RS_model_fit_'+ROI[tissue_type]+'_nodrift_on_T1_std_Michael_exact_t1vif_kappavif.png', format = 'png', bbox_inches = 'tight', dpi = 500)
     plt.savefig(dir+'/'+f'{sub_ID}'+'_RS_model_fit_'+ROI[tissue_type]+'_nodrift_on_T1_std_Michael_exact_t1vif_kappavif.png', format = 'png', bbox_inches = 'tight', dpi = 500)
 
     
@@ -460,11 +461,60 @@ for tissue_type in range(6):
     sheet_result.cell(row=int(sub_ID_split[0])+1, column = 5*(tissue_type)+10).value= float(s0[tissue_type])
     sheet_result.cell(row=int(sub_ID_split[0])+1, column = 5*(tissue_type)+11).value= float(k_fa[tissue_type])
     
-    book_result.save("/gpfs/home/wae16sru/BBB_sample_data/BBB_Michael_Code_modification/BBB_results_ADA_no_drift_on_T1_std_enh_timed100_Michael_exact_t1vif_kappavif.xlsx")
+    book_result.save(results_dir+"BBB_results_ADA_no_drift_on_T1_std_enh_timed100_Michael_exact_t1vif_kappavif_exactVIF_4pointsexcluded.xlsx")
     
-    df = pd.DataFrame(pd.read_excel('/gpfs/home/wae16sru/BBB_sample_data/BBB_Michael_Code_modification/BBB_results_ADA_no_drift_on_T1_std_enh_timed100_Michael_exact_t1vif_kappavif.xlsx'))
+    df = pd.DataFrame(pd.read_excel(results_dir+"BBB_results_ADA_no_drift_on_T1_std_enh_timed100_Michael_exact_t1vif_kappavif_exactVIF_4pointsexcluded.xlsx"))
     #df= pd.DataFrame(pd.read_excel("C:\\Users\\wae16sru\\OneDrive - University of East Anglia\\BBB_results\\BBB_results.xlsx"))
     
     print(df)
 
+# for presentation purpose 
+
+roi_names = ('WM', 'GM', 'CSF', 'Hippocampus', 'Thalamus', 'Amygdala')
+
+# plot enhancements
+plt.figure(figsize=(15,8))
+for idx, roi in enumerate(roi_names):
+    plt.subplot(2,3,idx+1)
+    plt.plot(t, sigEn_tissue[idx], 'ko-')
+    plt.title(roi+"_Enhancement")
+
+plt.figure()
+plt.plot(t, sigEn_SS, 'r-')
+plt.title('VIF');
+
+plt.savefig(results_dir+'/'+f'{sub_ID}'+'_sigEn'+'_nodrift_on_T1_std_Michael_exact_t1vif_kappavif.png', format = 'png', bbox_inches = 'tight', dpi = 500)
+
+C_t_tissue = [ e_to_c.proc(100*sigEn_tissue[idx], t1[idx], k_fa[idx]) for idx in range(len(roi_names)) ]
+c_p_vif = e_to_c.proc(sigEn_SS, t1_vif, k_vif) / (1-hct)
+
+
+
+# plot concentrations
+plt.figure(figsize=(15,8))
+for idx, roi in enumerate(roi_names):
+    plt.subplot(2,3,idx+1)
+    plt.plot(t, C_t_tissue[idx], 'ko-')
+    plt.title(roi+"_Conc")
+
+plt.figure()
+plt.plot(t, c_p_vif, 'r-')
+plt.title('VIF');
+plt.savefig(results_dir+'/'+f'{sub_ID}'+'_sigEn_to_Conc'+'_nodrift_on_T1_std_Michael_exact_t1vif_kappavif.png', format = 'png', bbox_inches = 'tight', dpi = 500)
+
+
+vp, ps, C_t_fit = list(zip(*
+                   [ conc_to_pkp.proc(conc) for conc in C_t_tissue ]
+                  ))
+#plot fits 
+plt.figure(figsize=(15,10))
+for idx, roi in enumerate(roi_names):
+    plt.subplot(2,3,idx+1)
+    plt.plot(t[:3], C_t_tissue[idx][:3], 'ko', fillstyle='none')
+    plt.plot(t[4:], C_t_tissue[idx][4:], 'ko')
+    plt.plot(t, C_t_fit[idx], 'k:')
+    plt.title(f'{roi}'+'_fit\nvp = {vp[idx]:.4f}, ps = {ps[idx]:.6f}')
+
+
+plt.savefig(results_dir+'/'+f'{sub_ID}'+'_Conc_fit'+'_nodrift_on_T1_std_Michael_exact_t1vif_kappavif.png', format = 'png', bbox_inches = 'tight', dpi = 500)
 
