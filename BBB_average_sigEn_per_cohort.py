@@ -14,9 +14,9 @@ import numpy as np
 
 
 results_dir= "/gpfs/home/wae16sru/BBB_sample_data/BBB_Michael_Code_modification/BBB_manuscript_results/BBB_DCE_results"
-df_sigEn_SMI_control = pd.read_csv('/gpfs/home/wae16sru/BBB_sample_data/BBB_Michael_Code_modification/BBB_manuscript_results/BBB_DCE_results/sigEn_SMI_control.csv')
-df_sigEn_SMI_active =  pd.read_csv('/gpfs/home/wae16sru/BBB_sample_data/BBB_Michael_Code_modification/BBB_manuscript_results/BBB_DCE_results/sigEn_SMI_active.csv')
-df_sigEn_MCI_control = pd.read_csv('/gpfs/home/wae16sru/BBB_sample_data/BBB_Michael_Code_modification/BBB_manuscript_results/BBB_DCE_results/sigEn_MCI_control.csv')
+df_sigEn_SMI_control = pd.read_csv('/gpfs/home/wae16sru/BBB_sample_data/BBB_Michael_Code_modification/BBB_manuscript_results/BBB_DCE_results/all_sigEn_SMI_control.csv')
+df_sigEn_SMI_active =  pd.read_csv('/gpfs/home/wae16sru/BBB_sample_data/BBB_Michael_Code_modification/BBB_manuscript_results/BBB_DCE_results/all_sigEn_SMI_active.csv')
+df_sigEn_MCI_control = pd.read_csv('/gpfs/home/wae16sru/BBB_sample_data/BBB_Michael_Code_modification/BBB_manuscript_results/BBB_DCE_results/all_sigEn_MCI_control.csv')
 
 
 
